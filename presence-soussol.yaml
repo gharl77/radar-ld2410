@@ -1,0 +1,336 @@
+# Pour un nouveau radar : copier ce fichier, changer ce bloc et les trois
+# secrets propres à l'appareil (voir modeles/LISEZ-MOI.md dans le dépôt).
+substitutions:
+  nom: presence-soussol
+  point_acces: "Presence-Soussol"   # Wi-Fi de secours (32 caractères max)
+  broche_tx: GPIO1                  # ESP32 TX -> RX du radar
+  broche_rx: GPIO3                  # ESP32 RX <- TX du radar
+
+esphome:
+  name: ${nom}
+  friendly_name: ${nom}
+  # Le radar démarre hors mode ingénierie : on l'active une fois qu'il répond.
+  on_boot:
+    priority: -100
+    then:
+      - delay: 10s
+      - switch.turn_on: radar_mode_ingenierie
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Logs : UART0 (GPIO1/3) est réservé au radar, donc pas de logs série
+logger:
+  baud_rate: 0
+
+# API pour Home Assistant
+api:
+  encryption:
+    key: !secret presence_soussol_api_key
+
+# Mises à jour OTA
+ota:
+  - platform: esphome
+    password: !secret presence_soussol_ota_password
+
+# Réseau Wi-Fi
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+  ap:
+    ssid: ${point_acces}
+    password: !secret presence_soussol_ap_password
+
+captive_portal:
+
+# Proxy Bluetooth : relaie vers HA les appareils BLE du sous-sol
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+# Diagnostic : cause du dernier redémarrage et mémoire libre
+debug:
+  update_interval: 60s
+
+# Radar LD2410C sur UART0
+uart:
+  tx_pin: ${broche_tx}
+  rx_pin: ${broche_rx}
+  baud_rate: 256000
+  parity: NONE
+  stop_bits: 1
+  # Marge pour les trames du mode ingénierie quand le Bluetooth occupe le processeur
+  rx_buffer_size: 512
+
+ld2410:
+  id: ld2410_radar
+
+# Capteurs binaires
+binary_sensor:
+  - platform: ld2410
+    has_target:
+      name: "Présence détectée"
+      id: radar_has_target
+      filters:
+        - delayed_off: 5s
+    has_moving_target:
+      name: "Mouvement détecté"
+    has_still_target:
+      name: "Présence immobile"
+
+  - platform: status
+    name: "Statut"
+
+# Capteurs numériques
+sensor:
+  # Le radar envoie ~10 mesures/s : on moyenne sur 5 s et on ne publie que
+  # les vrais changements arrondis (10 cm, 3 points d'énergie) pour ménager la base de HA.
+  - platform: ld2410
+    moving_distance:
+      name: "Distance (mouvement)"
+      id: moving_distance
+      filters: &distance_filtre
+        - throttle_average: 5s
+        - round: 0
+        - delta: 10
+    still_distance:
+      name: "Distance (immobile)"
+      id: still_distance
+      filters: *distance_filtre
+    moving_energy:
+      name: "Énergie du mouvement"
+      filters: &energie_principale_filtre
+        - throttle_average: 5s
+        - round: 0
+        - delta: 3
+    still_energy:
+      name: "Énergie immobile"
+      filters: *energie_principale_filtre
+    detection_distance:
+      name: "Distance de détection"
+      id: radar_detection_distance
+      filters: *distance_filtre
+    # Valeur brute 0-255 (pas des lux) : on retire la classe « illuminance »
+    light:
+      name: "Luminosité"
+      device_class: ""
+      filters:
+        - throttle_average: 30s
+        - round: 0
+        - delta: 1
+    # Énergies par porte (mode ingénierie) : moyenne sur 10 s, publiée seulement
+    # si elle change d'au moins 2 points. Sert à la carte de réglage des seuils.
+    g0:
+      move_energy:
+        name: "g0 énergie mouvement"
+        filters: &energie_filtre
+          - throttle_average: 10s
+          - round: 0
+          - delta: 2
+      still_energy:
+        name: "g0 énergie immobile"
+        filters: *energie_filtre
+    g1:
+      move_energy:
+        name: "g1 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g1 énergie immobile"
+        filters: *energie_filtre
+    g2:
+      move_energy:
+        name: "g2 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g2 énergie immobile"
+        filters: *energie_filtre
+    g3:
+      move_energy:
+        name: "g3 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g3 énergie immobile"
+        filters: *energie_filtre
+    g4:
+      move_energy:
+        name: "g4 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g4 énergie immobile"
+        filters: *energie_filtre
+    g5:
+      move_energy:
+        name: "g5 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g5 énergie immobile"
+        filters: *energie_filtre
+    g6:
+      move_energy:
+        name: "g6 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g6 énergie immobile"
+        filters: *energie_filtre
+    g7:
+      move_energy:
+        name: "g7 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g7 énergie immobile"
+        filters: *energie_filtre
+    g8:
+      move_energy:
+        name: "g8 énergie mouvement"
+        filters: *energie_filtre
+      still_energy:
+        name: "g8 énergie immobile"
+        filters: *energie_filtre
+
+  - platform: wifi_signal
+    name: "Signal Wi-Fi"
+    update_interval: 60s
+
+  - platform: uptime
+    name: "Durée de fonctionnement"
+    update_interval: 300s
+
+  - platform: debug
+    free:
+      name: "Mémoire libre"
+      filters:
+        - delta: 4096
+
+# Réglages du radar (seuils, distances, délai)
+# device_class vide sur les seuils et les distances max : les classes par défaut
+# (« signal_strength » en %, « distance » sans unité) sont invalides pour Home
+# Assistant, qui refusera la première à partir de 2027.5.
+number:
+  - platform: ld2410
+    timeout:
+      name: "Radar - Délai"
+    max_move_distance_gate:
+      name: "Radar - Distance max mouvement"
+      device_class: ""
+    max_still_distance_gate:
+      name: "Radar - Distance max immobile"
+      device_class: ""
+    g0:
+      move_threshold:
+        name: "g0 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g0 seuil immobile"
+        device_class: ""
+    g1:
+      move_threshold:
+        name: "g1 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g1 seuil immobile"
+        device_class: ""
+    g2:
+      move_threshold:
+        name: "g2 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g2 seuil immobile"
+        device_class: ""
+    g3:
+      move_threshold:
+        name: "g3 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g3 seuil immobile"
+        device_class: ""
+    g4:
+      move_threshold:
+        name: "g4 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g4 seuil immobile"
+        device_class: ""
+    g5:
+      move_threshold:
+        name: "g5 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g5 seuil immobile"
+        device_class: ""
+    g6:
+      move_threshold:
+        name: "g6 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g6 seuil immobile"
+        device_class: ""
+    g7:
+      move_threshold:
+        name: "g7 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g7 seuil immobile"
+        device_class: ""
+    g8:
+      move_threshold:
+        name: "g8 seuil mouvement"
+        device_class: ""
+      still_threshold:
+        name: "g8 seuil immobile"
+        device_class: ""
+
+# Le radar repasse hors mode ingénierie s'il redémarre (bouton, Bluetooth, coupure) :
+# on vérifie chaque minute et on le rallume au besoin.
+interval:
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            switch.is_off: radar_mode_ingenierie
+          then:
+            - switch.turn_on: radar_mode_ingenierie
+
+# Interrupteurs du radar
+switch:
+  - platform: ld2410
+    # Activé automatiquement (voir on_boot et interval)
+    engineering_mode:
+      name: "Radar - Mode ingénierie"
+      id: radar_mode_ingenierie
+    # Bluetooth intégré du radar (app du fabricant seulement)
+    bluetooth:
+      name: "Radar - Bluetooth"
+
+# Boutons : radar et ESP32
+button:
+  - platform: ld2410
+    restart:
+      name: "Radar - Redémarrer"
+    # Efface tous les réglages du radar : masqué pour éviter un clic accidentel
+    factory_reset:
+      name: "Radar - Remise à zéro usine"
+      disabled_by_default: true
+    query_params:
+      name: "Radar - Relire les paramètres"
+  - platform: restart
+    name: "Redémarrer l'ESP32"
+
+# Infos texte : radar et réseau
+text_sensor:
+  - platform: ld2410
+    version:
+      name: "Radar - Version firmware"
+    mac_address:
+      name: "Radar - Adresse MAC"
+  - platform: wifi_info
+    ip_address:
+      name: "Adresse IP"
+  - platform: debug
+    reset_reason:
+      name: "Cause du dernier redémarrage"
