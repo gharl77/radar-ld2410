@@ -1,5 +1,7 @@
 # Modèle : radar de présence LD2410C
 
+[English](README.md) · **Français**
+
 `radar-ld2410.yaml` est une copie de `presence-soussol.yaml` où tout ce qui est
 propre à l'appareil est remplacé par `NOM`. Le reste (filtres, mode ingénierie
 maintenu, proxy Bluetooth, diagnostics) est identique.
@@ -23,9 +25,9 @@ maintenu, proxy Bluetooth, diagnostics) est identique.
 
 ## Pourquoi un fichier complet plutôt qu'un « package »
 
-Les noms de secrets (`!secret ...`) ne peuvent pas venir d'une substitution, et
-les outils ESPHome utilisés ici ne permettent pas de créer un fichier partagé
-dans l'app. Un fichier autonome reste donc le plus simple à maintenir.
+Les noms de secrets (`!secret ...`) ne peuvent pas venir d'une substitution :
+un package partagé demanderait quand même des retouches par appareil. Un
+fichier autonome reste donc le plus simple à maintenir.
 
 ## Garder le modèle à jour
 

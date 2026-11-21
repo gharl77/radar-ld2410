@@ -1,0 +1,19 @@
+# Carte Lovelace (Markdown) : énergie mesurée par porte à côté de son seuil.
+# Lovelace Markdown card: measured energy per gate next to its threshold.
+# Remplacer / replace `presence_soussol` par le nom de l'appareil (tirets -> _).
+type: markdown
+title: Radar – réglage des seuils
+content: |
+  {% set p = 'presence_soussol' %}
+  | Porte | Distance | Mouvement | Seuil | Immobile | Seuil |
+  |:-:|:-:|:-:|:-:|:-:|:-:|
+  {% for g in range(9) -%}
+  {%- set em = states('sensor.' ~ p ~ '_g' ~ g ~ '_energie_mouvement') | float(0) -%}
+  {%- set sm = states('number.' ~ p ~ '_g' ~ g ~ '_seuil_mouvement') | float(0) -%}
+  {%- set ei = states('sensor.' ~ p ~ '_g' ~ g ~ '_energie_immobile') | float(0) -%}
+  {%- set si = states('number.' ~ p ~ '_g' ~ g ~ '_seuil_immobile') | float(0) -%}
+  | g{{ g }} | {{ '%.2f' | format(g * 0.75) }} – {{ '%.2f' | format((g + 1) * 0.75) }} m | {{ '🔴 ' if em >= sm else '' }}{{ em | int }} | {{ sm | int }} | {{ '🔴 ' if ei >= si else '' }}{{ ei | int }} | {{ si | int }} |
+  {% endfor %}
+
+  🔴 = l'énergie dépasse le seuil : cette porte déclenche la détection.
+  Pièce vide, aucune ligne ne devrait être rouge. Moyennes sur 10 s.
