@@ -331,6 +331,14 @@ text_sensor:
   - platform: wifi_info
     ip_address:
       name: "Adresse IP"
+    # Borne Wi-Fi utilisée et réseaux visibles (du plus fort au plus faible),
+    # pour comprendre un signal faible. Tronqué : HA limite un état à 255 caractères.
+    bssid:
+      name: "Borne Wi-Fi (BSSID)"
+    scan_results:
+      name: "Réseaux Wi-Fi visibles"
+      filters:
+        - lambda: 'return x.substr(0, 250);'
   - platform: debug
     reset_reason:
       name: "Cause du dernier redémarrage"

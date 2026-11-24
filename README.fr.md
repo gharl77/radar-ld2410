@@ -55,6 +55,7 @@ GPIO16 (RX) / GPIO17 (TX)** et retirer la ligne `baud_rate: 0`.
 | [`modeles/LISEZ-MOI.md`](modeles/LISEZ-MOI.md) | Comment créer un nouveau capteur à partir du modèle. |
 | [`home-assistant/carte-seuils.yaml`](home-assistant/carte-seuils.yaml) | Carte de tableau de bord : énergie par porte et seuil. |
 | [`reglages-radar.md`](reglages-radar.md) | Relevé des seuils du radar (ils vivent dans le radar, pas dans le YAML). |
+| [`autres/`](autres) | Sauvegarde des deux autres appareils ESPHome de la maison (un proxy Bluetooth et un émetteur infrarouge). Sans lien avec le radar. |
 
 ## Démarrage rapide
 
@@ -87,6 +88,7 @@ Dans Home Assistant, les noms sont préfixés par le nom de l'appareil.
 | Radar - Redémarrer, Relire les paramètres, Remise à zéro usine | Boutons du radar. La remise à zéro est désactivée par défaut. |
 | Statut, Signal Wi-Fi, Durée de fonctionnement, Adresse IP | Santé de l'appareil. |
 | Mémoire libre, Cause du dernier redémarrage | Diagnostic des redémarrages inexpliqués. |
+| Borne Wi-Fi (BSSID), Réseaux Wi-Fi visibles | Borne utilisée et réseaux visibles avec leur signal, pour diagnostiquer un Wi-Fi faible. |
 
 Chaque porte couvre 0,75 m : g0 va de 0 à 0,75 m, g8 de 6 à 6,75 m.
 

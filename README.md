@@ -53,6 +53,7 @@ remove the `baud_rate: 0` line.
 | [`modeles/README.md`](modeles/README.md) | How to create a new sensor from the template. |
 | [`home-assistant/carte-seuils.yaml`](home-assistant/carte-seuils.yaml) | Dashboard card: gate energy vs threshold. |
 | [`reglages-radar.md`](reglages-radar.md) | Snapshot of the radar's thresholds (they live in the radar, not in the YAML). |
+| [`autres/`](autres) | Backup of the two other ESPHome devices in the house (a Bluetooth proxy and an IR blaster). Unrelated to the radar. |
 
 ## Quick start
 
@@ -85,6 +86,7 @@ Names are prefixed by the device name in Home Assistant.
 | Radar - Redémarrer, Relire les paramètres, Remise à zéro usine | Radar buttons. Factory reset is disabled by default. |
 | Statut, Signal Wi-Fi, Durée de fonctionnement, Adresse IP | Device health. |
 | Mémoire libre, Cause du dernier redémarrage | Diagnostics for unexplained reboots. |
+| Borne Wi-Fi (BSSID), Réseaux Wi-Fi visibles | Access point in use and visible networks with their signal, to diagnose weak Wi-Fi. |
 
 Each gate covers 0.75 m: g0 is 0–0.75 m, g8 is 6–6.75 m.
 
